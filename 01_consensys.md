@@ -2,6 +2,8 @@
 
 ## Aave Protocol V2 Audit
 
+[Report](https://consensys.net/diligence/audits/2020/09/aave-protocol-v2)
+
 ### 1. Aave Protocol V2
 
 **Finding**: Unhandled return values of `transfer` and `transferFrom`
@@ -13,6 +15,8 @@
 **Severity**: Medium
 
 ## Defi Saver Audit
+
+[Report](https://consensys.net/diligence/audits/2021/03/defi-saver)
 
 ### 2. Defi Saver
 
@@ -46,6 +50,8 @@
 **Severity**: Major
 
 ## DAOfi Audit
+
+[Report](https://consensys.net/diligence/audits/2021/03/defi-saver)
 
 ### 5. DAOfi
 
@@ -88,6 +94,8 @@
 **Severity**: Medium
 
 ## Fei Protocol Audit
+
+[Report](https://consensys.net/diligence/audits/2021/01/fei-protocol)
 
 ### 9. Fei Protocol
 
@@ -175,6 +183,8 @@
 
 ## bitbank Audit
 
+[Report](https://consensys.net/diligence/audits/2020/11/bitbank)
+
 ### 17. bitbank
 
 **Finding**: `ERC20` tokens with no return value will fail to transfer
@@ -186,6 +196,8 @@
 **Severity**: Major
 
 ## MetaSwap Audit
+
+[Report](https://consensys.net/diligence/audits/2020/08/metaswap)
 
 ### 18. MetaSwap
 
@@ -219,6 +231,8 @@
 
 ## mstable-1.1 Audit
 
+[Report](https://consensys.net/diligence/audits/2020/07/mstable-1.1)
+
 ### 21. mstable-1.1
 
 **Finding**: Users can collect interest from `SavingsContract` by only staking `mTokens` momentarily
@@ -230,6 +244,8 @@
 **Severity**: Medium
 
 ## Bancor v2 AMM Audit
+
+[Report](https://consensys.net/diligence/audits/2020/06/bancor-v2-amm-security-audit)
 
 ### 22. Bancor v2 AMM
 
@@ -244,6 +260,8 @@
 **Severity**: Critical
 
 ## Shell Protocol Audit
+
+[Report](https://consensys.net/diligence/audits/2020/06/shell-protocol)
 
 ### 23. Shell Protocol
 
@@ -274,6 +292,8 @@
 
 ## Lien Protocol Audit
 
+[Report](https://consensys.net/diligence/audits/2020/05/lien-protocol)
+
 ### 25. Lien Protocol
 
 **Finding**: A reverting `fallback` function will lock up all payouts
@@ -287,6 +307,8 @@
 **Severity**: Critical
 
 ## The Lao Audit
+
+[Report](https://consensys.net/diligence/audits/2020/01/the-lao)
 
 ### 26. The Lao
 

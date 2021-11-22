@@ -2,6 +2,8 @@
 
 ## Ether Collateral Audit
 
+[Report](https://github.com/sigp/public-audits/blob/master/synthetix/ethercollateral/review.pdf)
+
 ### 67. Ether Collateral
 
 **Finding**: Improper Supply Cap Limitation Enforcement
@@ -36,6 +38,8 @@
 
 ## InfiniGold Audit
 
+[Report](https://github.com/sigp/public-audits/raw/master/infinigold/review.pdf)
+
 ### 70. InfiniGold
 
 **Finding**: Inadequate Proxy Implementation Preventing Contract Upgrades:
@@ -64,6 +68,8 @@ Hence when a proxy call to the implementation is made, variables such as `Owner`
 **Severity**: High
 
 ## Synthetix Unipool Audit
+
+[Report](https://github.com/sigp/public-audits/blob/master/synthetix/unipool/review.pdf)
 
 ### 72. Synthetix Unipool
 
@@ -106,6 +112,8 @@ Hence when a proxy call to the implementation is made, variables such as `Owner`
 **Severity**: Medium
 
 ## Chainlink Audit
+
+[Report](https://github.com/sigp/public-audits/blob/master/chainlink-1/review.pdf)
 
 ### 76. Chainlink
 

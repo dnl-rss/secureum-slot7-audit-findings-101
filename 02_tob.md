@@ -2,6 +2,8 @@
 
 ## Origin Dollar Audit
 
+[Report](https://github.com/trailofbits/publications/blob/master/reviews/OriginDollar.pdf)
+
 ### 34. Origin Dollar
 
 **Finding**: Queued transactions cannot be canceled
@@ -96,6 +98,8 @@
 
 ## Yield Protocol
 
+[Report](https://github.com/trailofbits/publications/blob/master/reviews/YieldProtocol.pdf)
+
 ### 42. Yield Protocol
 
 **Finding**: Flash minting can be used to redeem fyDAI
@@ -121,6 +125,8 @@
 **Severity**: High
 
 ## Hermez Audit
+
+[Report](https://github.com/trailofbits/publications/blob/master/reviews/hermez.pdf)
 
 ### 44. Hermez
 
@@ -186,6 +192,8 @@ Carefully review the Solidity documentation, especially the Warnings section. Ca
 **Severity**: High
 
 ## Uniswap V3 Audit
+
+[Report](https://github.com/Uniswap/uniswap-v3-core/blob/main/audits/tob/audit.pdf)
 
 ### 49. Uniswap V3
 
@@ -261,6 +269,8 @@ Carefully review the Solidity documentation, especially the Warnings section. Ca
 
 ## DFX Finance Audit
 
+[Report](https://github.com/dfx-finance/protocol/blob/main/audits/2021-05-03-Trail_of_Bits.pdf)
+
 ### 55. DFX Finance
 
 **Finding**: Use of undefined behavior in equality check
@@ -312,6 +322,8 @@ which means that this check constitutes an instance of undefined behavior. As su
 **Severity**: Undetermined
 
 ## 0x Protocol Audit
+
+[Report](https://github.com/trailofbits/publications/blob/master/reviews/0x-protocol.pdf)
 
 ### 59. 0x Protocol
 
