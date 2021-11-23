@@ -1,5 +1,5 @@
 # Trail of Bits Audit Findings
-
+___
 ## Origin Dollar Audit
 
 [Report](https://github.com/trailofbits/publications/blob/master/reviews/OriginDollar.pdf)
@@ -14,7 +14,8 @@
 - Short term, add a function to the `Governor` that calls `Timelock.cancelTransaction`. It is unclear who should be able to call it, and what other restrictions there should be around cancelling a transaction.
 - Long term, consider letting `Governor` inherit from `Timelock`. This would allow a lot of functions and code to be removed and significantly lower the complexity of these two contracts.
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
+
 
 ### 35. Origin Dollar
 
@@ -24,7 +25,8 @@
 
 **Recommendation**: Short term, only allow the admin to call `Timelock.executeTransaction`
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
+
 
 ### 36. Origin Dollar
 
@@ -34,17 +36,21 @@
 
 **Recommendation**: Short term, add a check that prevents `setPendingAdmin` to be included in a `Proposal`
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
+
 
 ### 37. Origin Dollar
 
 **Finding**: Reentrancy and untrusted contract call in `mintMultiple`
 
-**Description**: Missing checks and no reentrancy prevention allow untrusted contracts to be called from mintMultiple. This could be used by an attacker to drain the contracts.
+**Description**: Missing checks and no reentrancy prevention allow untrusted contracts to be called from `mintMultiple`. This could be used by an attacker to drain the contracts.
 
-**Recommendation**: Short term, add checks that cause mintMultiple to revert if the amount is zero or the asset is not supported. Add a reentrancy guard to the mint, mintMultiple, redeem, and redeemAll functions. Long term, make use of Slither which will flag the reentrancy. Or even better, use Crytic and incorporate static analysis checks into your CI/CD pipeline. Add reentrancy guards to all non-view functions callable by anyone. Make sure to always revert a transaction if an input is incorrect. Disallow calling untrusted contracts.
+**Recommendation**:
+- Short term, add checks that cause `mintMultiple` to revert if the amount is zero or the asset is not supported. Add a reentrancy guard to the `mint`, `mintMultiple`, `redeem`, and `redeemAll` functions.
+- Long term, make use of Slither which will flag the reentrancy. Or even better, use Crytic and incorporate static analysis checks into your CI/CD pipeline. Add reentrancy guards to all non-view functions callable by anyone. Make sure to always revert a transaction if an input is incorrect. Disallow calling untrusted contracts.
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
+
 
 ### 38. Origin Dollar
 
@@ -56,7 +62,8 @@
 - Short term, check the return value of all calls mentioned above.
 - Long term, subscribe to Crytic.io to catch missing return checks. Crytic identifies this bug type automatically.
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
+
 
 ### 39. Origin Dollar
 
@@ -70,7 +77,8 @@
     2. remove elements.
 - Long term, subscribe to Crytic.io to review external calls in loops. Crytic catches bugs of this type.
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
+
 
 ### 40. Origin Dollar
 
@@ -82,7 +90,8 @@
 - Short term, make sure the balance is correctly checked before performing all the arithmetic operations. This will make sure it does not allow to transfer more than expected.
 - Long term, use Echidna to write properties that ensure ERC20 transfers are transferring the expected amount.
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
+
 
 ### 41. Origin Dollar
 
@@ -94,8 +103,9 @@
 - Short term, we would advise making clear all common invariant violations for users and other stakeholders.
 - Long term, we would recommend designing the system in such a way to preserve as many commonplace invariants as possible.
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
 
+___
 ## Yield Protocol
 
 [Report](https://github.com/trailofbits/publications/blob/master/reviews/YieldProtocol.pdf)
@@ -110,20 +120,22 @@
 - Short term, disallow calls to redeem in the YDai and Unwind contracts during flash minting.
 - Long term, do not include operations that allow any user to manipulate an arbitrary amount of funds, even if it is in a single transaction. This will prevent attackers from gaining leverage to manipulate the market and break internal invariants.
 
-**Severity**: Medium
+**Severity**: <span style="color:black; background-color:yellow">Medium</span>
+
 
 ### 43. Yield Protocol
 
 **Finding**: Lack of `chainID` validation allows signatures to be re-used across forks
 
-**Description**: YDai implements the draft ERC 2612 via the `ERC20Permit` contract it inherits from. This allows a third party to transmit a signature from a token holder that modifies the ERC20 allowance for a particular user. These signatures used in calls to permit in `ERC20Permit` do not account for chain splits. The `chainID` is included in the domain separator. However, it is not updatable and not included in the signed data as part of the permit call. As a result, if the chain forks after deployment, the signed message may be considered valid on both forks.
+**Description**: YDai implements the draft ERC 2612 via the `ERC20Permit` contract it inherits from. This allows a third party to transmit a signature from a token holder that modifies the ERC20 allowance for a particular user. These signatures used in calls to `permit` in `ERC20Permit` do not account for chain splits. The `chainID` is included in the domain separator. However, it is not updatable and not included in the signed data as part of the permit call. As a result, if the chain forks after deployment, the signed message may be considered valid on both forks.
 
 **Recommendation**:
-- Short term, include the `chainID` opcode in the permit schema. This will make replay attacks impossible in the event of a post-deployment hard fork.
+- Short term, include the `chainID` opcode in the `permit` schema. This will make replay attacks impossible in the event of a post-deployment hard fork.
 - Long term, document and carefully review any signature schemas, including their robustness to replay on different wallets, contracts, and blockchains. Make sure users are aware of signing best practices and the danger of signing messages from untrusted sources.
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
 
+___
 ## Hermez Audit
 
 [Report](https://github.com/trailofbits/publications/blob/master/reviews/hermez.pdf)
@@ -132,7 +144,7 @@
 
 **Finding**: Lack of a contract existence check allows token theft
 
-**Description**: Since there’s no existence check for contracts that interact with external tokens, an attacker can steal funds by registering a token that’s not yet deployed. `_safeTransferFrom` will return success even if the token is not yet deployed, or was self-destructed. An attacker that knows the address of a future token can register the token in `Hermez`, and deposit any amount prior to the token deployment. Once the contract is deployed and tokens have been deposited in `Hermez`, the attacker can steal the funds. The address of a contract to be deployed can be determined by knowing the address of its deployer.
+**Description**: Since there’s no existence check for contracts that interact with external tokens, an attacker can steal funds by registering a token that’s not yet deployed. `_safeTransferFrom` will return `true` even if the token is not yet deployed, or was self-destructed. An attacker that knows the address of a future token can register the token in `Hermez`, and deposit any amount prior to the token deployment. Once the contract is deployed and tokens have been deposited in `Hermez`, the attacker can steal the funds. The address of a contract to be deployed can be determined by knowing the address of its deployer.
 
 **Recommendation**:
 - Short term, check for contract existence in `_safeTransferFrom`. Add a similar check for any low-level calls, including in `WithdrawalDelayer`. This will prevent an attacker from listing and depositing tokens in a contract that is not yet deployed.
@@ -140,7 +152,8 @@
 
 > "The low-level call, delegatecall, and callcode will return success if the called account is non-existent, as part of the design of EVM. Existence must be checked prior to calling if desired." - Solidity Docs
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
+
 
 ### 45. Hermez
 
@@ -152,7 +165,8 @@
 - Short term, explore ways to incentivize users to vote earlier. Consider a weighted bid, with a weight decreasing over time. While it won’t prevent users with unlimited resources from manipulating the vote at the last minute, it will make the attack more expensive and reduce the chance of vote manipulation.
 - Long term, stay up to date with the latest research on blockchain-based online voting and bidding. Blockchain-based online voting is a known challenge. No perfect solution has been found yet.
 
-**Severity**: Medium
+**Severity**: <span style="color:black; background-color:yellow">Medium</span>
+
 
 ### 46. Hermez
 
@@ -164,7 +178,8 @@
 - Short term, use a separate account to handle updating the tokens/USD ratio. Using the same account for the critical operations and update the tokens/USD ratio increases underlying risks.
 - Long term, document the access controls and set up a proper authorization architecture. Consider the risks associated with each access point and their frequency of usage to evaluate the proper design.
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
+
 
 ### 47. Hermez
 
@@ -173,10 +188,11 @@
 **Description**: Several critical operations are done in one function call. This schema is error-prone and can lead to irrevocable mistakes. For example, the setter for the whitehack group address sets the address to the provided argument. If the address is incorrect, the new address will take on the functionality of the new role immediately. However, a two-step process is similar to the `approve`-`transferFrom` functionality: The contract approves the new address for a new role, and the new address acquires the role by calling the contract.
 
 **Recommendation**:
-- Short term, use a two-step procedure for all non-recoverable critical operations to prevent irrecoverable mistakes.
+- Short term, use a *two-step procedure* for all non-recoverable critical operations to prevent irrecoverable mistakes.
 - Long term, identify and document all possible actions and their associated risks for privileged accounts. Identifying the risks will assist codebase review and prevent future mistakes.
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
+
 
 ### 48. Hermez
 
@@ -186,20 +202,23 @@
 
 **Recommendation**: Short term, either:
 1. Use a factory pattern that will prevent front-running of the initialization
-2. Ensure the deployment scripts are robust in case of a front-running attack
+2. Ensure the deployment scripts are robust in case of a front-running attack.
 Carefully review the Solidity documentation, especially the Warnings section. Carefully review the pitfalls of using delegatecall proxy pattern.
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
 
+___
 ## Uniswap V3 Audit
 
 [Report](https://github.com/Uniswap/uniswap-v3-core/blob/main/audits/tob/audit.pdf)
 
 ### 49. Uniswap V3
 
-**Finding**: Missing validation of `_owner` argument could indefinitely lock `owner` role:
+**Finding**: Missing validation of `_owner` argument could indefinitely lock `owner` role
 
-**Description**: A lack of input validation of the `_owner` argument in both the constructor and `setOwner` functions could permanently lock the `owner` role, requiring a costly redeploy. To resolve an incorrect owner issue, Uniswap would need to redeploy the factory contract and re-add pairs and liquidity. Users might not be happy to learn of these actions, which could lead to reputational damage. Certain users could also decide to continue using the original factory and pair contracts, in which owner functions cannot be called. This could lead to the concurrent use of two versions of Uniswap, one with the original factory contract and no valid `owner` and another in which the `owner` was set correctly. Trail of Bits identified four distinct cases in which an incorrect owner is set:
+**Description**: A lack of input validation of the `_owner` argument in both the constructor and `setOwner` functions could permanently lock the `owner` role, requiring a costly redeploy. To resolve an incorrect `owner` issue, Uniswap would need to redeploy the factory contract and re-add pairs and liquidity. Users might not be happy to learn of these actions, which could lead to reputational damage. Certain users could also decide to continue using the original factory and pair contracts, in which `owner` functions cannot be called. This could lead to the concurrent use of two versions of Uniswap, one with the original factory contract and no valid `owner` and another in which the `owner` was set correctly.
+
+Trail of Bits identified four distinct cases in which an incorrect owner is set:
 1. Passing `address(0)` to the `constructor`
 2. Passing `address(0)` to the `setOwner` function
 3. Passing an incorrect `address` to the `constructor`
@@ -207,10 +226,11 @@ Carefully review the Solidity documentation, especially the Warnings section. Ca
 
 **Recommendation**: Several improvements could prevent the four above mentioned cases:
 1. Designate `msg.sender` as the initial `owner`, and transfer ownership to the chosen owner after deployment.
-2. Implement a two-step ownership-change process through which the new `owner` needs to accept ownership.
+2. Implement a *two-step ownership change process* through which the new `owner` needs to accept ownership.
 3. If it needs to be possible to set the `owner` to `address(0)`, implement a `renounceOwnership` function.
 
-**Severity**: Medium
+**Severity**: <span style="color:black; background-color:yellow">Medium</span>
+
 
 ### 50. Uniswap V3
 
@@ -220,7 +240,8 @@ Carefully review the Solidity documentation, especially the Warnings section. Ca
 
 **Recommendation**: Replace `>=` with `<=` in the `require` statement.
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
+
 
 ### 51. Uniswap V3
 
@@ -230,7 +251,8 @@ Carefully review the Solidity documentation, especially the Warnings section. Ca
 
 **Recommendation**: Bound the loops and document the bounds.
 
-**Severity**: Medium
+**Severity**: <span style="color:black; background-color:yellow">Medium</span>
+
 
 ### 52. Uniswap V3
 
@@ -239,11 +261,12 @@ Carefully review the Solidity documentation, especially the Warnings section. Ca
 **Description**: A front-run on `UniswapV3Pool.initialize` allows an attacker to set an unfair price and to drain assets from the first deposits. There are no access controls on the initialize function, so anyone could call it on a deployed pool. Initializing a pool with an incorrect price allows an attacker to generate profits from the initial liquidity provider’s deposits.
 
 **Recommendation**: Either:
-1. moving the price operations from initialize to the constructor
-2. adding access controls to initialize
-3. ensuring that the documentation clearly warns users about incorrect initialization
+1. move the price operations from `initialize` to the `constructor`
+2. add access controls to `initialize`
+3. ensure that the documentation clearly warns users about incorrect initialization
 
-**Severity**: Medium
+**Severity**: <span style="color:black; background-color:yellow">Medium</span>
+
 
 ### 53. Uniswap V3
 
@@ -253,20 +276,22 @@ Carefully review the Solidity documentation, especially the Warnings section. Ca
 
 **Recommendation**: No straightforward way to prevent the issue. Ensure pools don’t end up in unexpected states. Warn users of potential risks.
 
-**Severity**: Medium
+**Severity**: <span style="color:black; background-color:yellow">Medium</span>
+
 
 ### 54. Uniswap V3
 
 **Finding**: Failed transfer may be overlooked due to lack of contract existence check
 
-**Description**: Because the pool fails to check that a contract exists, the pool may assume that failed transactions involving destructed tokens are successful. `TransferHelper.safeTransfer` performs a transfer with a low-level call without confirming the contract’s existence. As a result, if the tokens have not yet been deployed or have been destroyed, `safeTransfer` will return success even though no transfer was executed.
+**Description**: Because the pool fails to check that a contract exists, the pool may assume that failed transactions involving destructed tokens are successful. `TransferHelper.safeTransfer` performs a transfer with a low-level call without confirming the contract’s existence. As a result, if the tokens have not yet been deployed or have been destroyed, `safeTransfer` will return `true` even though no transfer was executed.
 
 **Recommendation**:
 - Short term, check the contract’s existence prior to the low-level call in `TransferHelper.safeTransfer`.
 - Long term, avoid low-level calls.
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
 
+___
 ## DFX Finance Audit
 
 [Report](https://github.com/dfx-finance/protocol/blob/main/audits/2021-05-03-Trail_of_Bits.pdf)
@@ -285,7 +310,8 @@ which means that this check constitutes an instance of undefined behavior. As su
 - Short term, rewrite the `if` statement such that it does not use and assign the same variable in an equality check.
 - Long term, ensure that the codebase does not contain undefined Solidity or EVM behavior.
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
+
 
 ### 56. DFX Finance
 
@@ -297,7 +323,8 @@ which means that this check constitutes an instance of undefined behavior. As su
 - Short term, change the semantics of the three functions listed above in the CADC, XSGD, and EURS assimilators to return the numeraire balance.
 - Long term, use unit tests and fuzzing to ensure that all calculations return the expected values. Additionally, ensure that changes to the Shell Protocol do not introduce bugs such as this one.
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
+
 
 ### 57. DFX Finance
 
@@ -309,7 +336,8 @@ which means that this check constitutes an instance of undefined behavior. As su
 - Short term, replace the hard-coded integer literal in the `UsdcToUsdAssimilator`’s `getRate` method with a call to the relevant Chainlink oracle, as is done in other assimilator contracts.  
 - Long term, ensure that the system is robust against a decrease in the price of any stablecoin.
 
-**Severity**: Medium
+**Severity**: <span style="color:black; background-color:yellow">Medium</span>
+
 
 ### 58. DFX Finance
 
@@ -320,7 +348,7 @@ which means that this check constitutes an instance of undefined behavior. As su
 **Recommendation**: Use the latest stable versions of any external libraries or contracts leveraged by the codebase
 
 **Severity**: Undetermined
-
+___
 ## 0x Protocol Audit
 
 [Report](https://github.com/trailofbits/publications/blob/master/reviews/0x-protocol.pdf)
@@ -333,7 +361,8 @@ which means that this check constitutes an instance of undefined behavior. As su
 
 **Recommendation**: Properly document this behavior to warn users about the permanent effects of `cancelOrderUpTo` on future orders. Alternatively, disallow the cancelation of future orders.
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
+
 
 ### 60. 0x Protocol
 
@@ -349,7 +378,8 @@ The `MultiSigWalletWithTimeLock.sol` and `AssetProxyOwner.sol` contracts' timelo
 - Short term, implement the necessary range checks to enforce the timelock described in the specification. Otherwise correct the specification to match the intended behavior.
 - Long term, make sure implementation and specification are in sync. Use Echidna or Manticore to test that your code properly implements the specification.
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
+
 
 ### 61. 0x Protocol
 
@@ -359,7 +389,8 @@ The `MultiSigWalletWithTimeLock.sol` and `AssetProxyOwner.sol` contracts' timelo
 
 **Recommendation**: Define a proper procedure to determine if an order is fillable and document it in the protocol specification. If necessary, warn the user about potential constraints on the orders.
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
+
 
 ### 62. 0x Protocol
 
@@ -371,7 +402,8 @@ The `MultiSigWalletWithTimeLock.sol` and `AssetProxyOwner.sol` contracts' timelo
 - Short term, properly document this issue to make sure users are aware of this risk. Establish a reasonable cap for the `protocolFeeMultiplier` to mitigate this issue.
 - Long term, consider using an alternative fee that does not depend on the `tx.gasprice` to avoid reducing the cost of performing front-running attacks.
 
-**Severity**: Medium
+**Severity**: <span style="color:black; background-color:yellow">Medium</span>
+
 
 ### 63. 0x Protocol
 
@@ -383,7 +415,8 @@ The `MultiSigWalletWithTimeLock.sol` and `AssetProxyOwner.sol` contracts' timelo
 - Short term, document this behavior to make sure users are aware of the inherent risks of using validators in case of a compromise.
 - Long term, consider monitoring the blockchain using the `SignatureValidatorApproval` events to catch front-running attacks.
 
-**Severity**: Medium
+**Severity**: <span style="color:black; background-color:yellow">Medium</span>
+
 
 ### 64. 0x Protocol
 
@@ -395,7 +428,8 @@ The `MultiSigWalletWithTimeLock.sol` and `AssetProxyOwner.sol` contracts' timelo
 - Short term, implement `NoThrow` variants for batch processing of transaction execution and order matching.
 - Long term, take into consideration the effect of malicious inputs when implementing functions that perform a batch of operations.
 
-**Severity**: Medium
+**Severity**: <span style="color:black; background-color:yellow">Medium</span>
+
 
 ### 65. 0x Protocol
 
@@ -407,7 +441,8 @@ The `MultiSigWalletWithTimeLock.sol` and `AssetProxyOwner.sol` contracts' timelo
 - Short term, select a reasonable minimum value for the protocol fee for each order or transaction.
 - Long term, consider not depending on the gas price for the computation of protocol fees. This will avoid giving miners an economic advantage in the system.
 
-**Severity**: Medium
+**Severity**: <span style="color:black; background-color:yellow">Medium</span>
+
 
 ### 66. 0x Protocol
 
@@ -417,4 +452,4 @@ The `MultiSigWalletWithTimeLock.sol` and `AssetProxyOwner.sol` contracts' timelo
 
 **Recommendation**: Add proper validation checks on all parameters in `setParams`. If the validation procedure is unclear or too complex to implement on-chain, document the potential issues that could produce invalid values.
 
-**Severity**: Medium
+**Severity**: <span style="color:black; background-color:yellow">Medium</span>

@@ -1,5 +1,5 @@
 # Sigma Prime Audit Findings
-
+___
 ## Ether Collateral Audit
 
 [Report](https://github.com/sigp/public-audits/blob/master/synthetix/ethercollateral/review.pdf)
@@ -12,7 +12,8 @@
 
 **Recommendation**: Introduce a `require` statement in the `openLoan()` function to prevent the total cap from being exceeded by the loan to be opened.
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
+
 
 ### 68.Ether Collateral
 
@@ -24,7 +25,8 @@
 1. Consider changing the `storeLoan` function to only push the account to the `accountsWithOpenLoans` array if the loan to be stored is the first one for that particular account ;
 2. Introduce a limit to the number of loans each account can have.
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
+
 
 ### 69. Ether Collateral
 
@@ -34,8 +36,9 @@
 
 **Recommendation**: While "dynamic" interest rates are common, we recommend considering the minting fee ( `issueFeeRate` ) to be a constant that cannot be changed by the owner.
 
-**Severity**: Medium
+**Severity**: <span style="color:black; background-color:yellow">Medium</span>
 
+___
 ## InfiniGold Audit
 
 [Report](https://github.com/sigp/public-audits/raw/master/infinigold/review.pdf)
@@ -55,7 +58,7 @@ Hence when a proxy call to the implementation is made, variables such as `Owner`
 3. Create `getter` and `setter` functions that can only be called by the `owner`. Note that this strategy allows the owner to change various parameters of the contract after deployment.
 4. Predetermine the slots used by the required variables and set them in the `constructor` of the proxy. The storage slots used by a contract are deterministic and can be computed. Hence the variables `Owner` , `name` , `symbol` and `decimals` can be set directly by their slot in the proxy constructor.
 
-**Severity**: Critical
+**Severity**: <span style="color:black; background-color:red">Critical</span>
 
 ### 71. InfiniGold
 
@@ -65,8 +68,9 @@ Hence when a proxy call to the implementation is made, variables such as `Owner`
 
 **Recommendation**: At present the function `transferFrom()` uses the `notBlacklisted(address)` modifier twice, on the `msg.sender` and `to` addresses. The `notBlacklisted(address)` modifier should be used a third time against the `from` address.
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
 
+___
 ## Synthetix Unipool Audit
 
 [Report](https://github.com/sigp/public-audits/blob/master/synthetix/unipool/review.pdf)
@@ -79,38 +83,41 @@ Hence when a proxy call to the implementation is made, variables such as `Owner`
 
 **Recommendation**: Adjust the function `rewardPerToken()` to represent the original functionality.
 
-**Severity**: Critical
+**Severity**: <span style="color:black; background-color:red">Critical</span>
 
 ### 73. Synthetix Unipool
 
 **Finding**: Staking Before Initial `notifyRewardAmount` Can Lead to Disproportionate Rewards
 
-**Description**: If a user successfully stakes an amount of UNI tokens before the function `notifyRewardAmount()` is called for the first time, their initial `userRewardPerTokenPaid` will be set to zero. The staker would be paid out funds greater than their share of the SNX rewards.
+**Description**: If a user successfully stakes an amount of UNI tokens before the function `notifyRewardAmount` is called for the first time, their initial `userRewardPerTokenPaid` will be set to zero. The staker would be paid out funds greater than their share of the SNX rewards.
 
-**Recommendation**: We recommend preventing `stake()` from being called before `notifyRewardAmount()` is called for the first time.
+**Recommendation**: We recommend preventing `stake` from being called before `notifyRewardAmount` is called for the first time.
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
+
 
 ### 74. Synthetix Unipool
 
 **Finding**: External Call Reverts if Period Has Not Elapsed
 
-**Description**: The function `notifyRewardAmount()` will revert if `block.timestamp >= periodFinish`. However this function is called indirectly via the `Synthetix.mint()` function. A revert here would cause the external call to fail and thereby halt the mint process. `Synthetix.mint()` cannot be successfully called until enough time has elapsed for the period to finish.
+**Description**: The function `notifyRewardAmount` will revert if `block.timestamp >= periodFinish`. However this function is called indirectly via the `Synthetix.mint` function. A revert here would cause the external call to fail and thereby halt the mint process. `Synthetix.mint` cannot be successfully called until enough time has elapsed for the period to finish.
 
 **Recommendation**: Consider handling the case where the reward period has not elapsed without reverting the call.
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
+
 
 ### 75. Synthetix Unipool
 
 **Finding**: Gap Between Periods Can Lead to Erroneous Rewards
 
-**Description**: The SNX rewards are earned each period based on reward and duration as specified in the `notifyRewardAmount()` function. The contract will output more rewards than it receives. Therefore if all stakers call `getReward()` the contract will not have enough SNX balance to transfer out all the rewards and some stakers may not receive any rewards.
+**Description**: The SNX rewards are earned each period based on reward and duration as specified in the `notifyRewardAmount` function. The contract will output more rewards than it receives. Therefore if all stakers call `getReward` the contract will not have enough SNX balance to transfer out all the rewards and some stakers may not receive any rewards.
 
 **Recommendation**: We recommend enforcing each period start exactly at the end of the previous period.
 
-**Severity**: Medium
+**Severity**: <span style="color:black; background-color:yellow">Medium</span>
 
+___
 ## Chainlink Audit
 
 [Report](https://github.com/sigp/public-audits/blob/master/chainlink-1/review.pdf)
@@ -123,4 +130,4 @@ Hence when a proxy call to the implementation is made, variables such as `Owner`
 
 **Recommendation**: This issue arises due to the fact that any request can specify its own arbitrary callback address. A restrictive solution would be where callback addresses are localised to the requester themselves.
 
-**Severity**: High
+**Severity**: <span style="color:black; background-color:orange">High</span>
