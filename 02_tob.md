@@ -212,11 +212,31 @@ ___
 
 [Report](https://github.com/Uniswap/uniswap-v3-core/blob/main/audits/tob/audit.pdf)
 
-### 49. Uniswap V3
+### 49. TOB-UNI-001
 
 **Finding**: Missing validation of `_owner` argument could indefinitely lock `owner` role
 
-**Description**: A lack of input validation of the `_owner` argument in both the constructor and `setOwner` functions could permanently lock the `owner` role, requiring a costly redeploy. To resolve an incorrect `owner` issue, Uniswap would need to redeploy the factory contract and re-add pairs and liquidity. Users might not be happy to learn of these actions, which could lead to reputational damage. Certain users could also decide to continue using the original factory and pair contracts, in which `owner` functions cannot be called. This could lead to the concurrent use of two versions of Uniswap, one with the original factory contract and no valid `owner` and another in which the `owner` was set correctly.
+**Description**:
+
+A lack of input validation of the `_owner` argument in both the constructor and `setOwner` functions could permanently lock the `owner` role, requiring a costly redeploy.
+
+```solidity
+// INSECURE CODE from UniswapV3Pool
+constructor(address _owner) {
+  owner = _owner; // parameter lacks validation
+  emit OwnerChanged(address(0), _owner);
+  // ...
+}
+
+// ...
+
+function setOwner(address _owner) external override {
+  require(msg.sender == owner, '00');
+  emit OwnerChanged(owner, _owner);
+  owner = _owner // parameter lacks validation
+}
+```
+To resolve an incorrect `owner` issue, Uniswap would need to redeploy the factory contract and re-add pairs and liquidity. Users might not be happy to learn of these actions, which could lead to reputational damage. Certain users could also decide to continue using the original factory and pair contracts, in which `owner` functions cannot be called. This could lead to the concurrent use of two versions of Uniswap, one with the original factory contract and no valid `owner` and another in which the `owner` was set correctly.
 
 Trail of Bits identified four distinct cases in which an incorrect owner is set:
 1. Passing `address(0)` to the `constructor`
@@ -224,7 +244,9 @@ Trail of Bits identified four distinct cases in which an incorrect owner is set:
 3. Passing an incorrect `address` to the `constructor`
 4. Passing an incorrect `address` to the `setOwner` function.
 
-**Recommendation**: Several improvements could prevent the four above mentioned cases:
+**Recommendation**:
+
+Several improvements could prevent the four above mentioned cases:
 1. Designate `msg.sender` as the initial `owner`, and transfer ownership to the chosen owner after deployment.
 2. Implement a *two-step ownership change process* through which the new `owner` needs to accept ownership.
 3. If it needs to be possible to set the `owner` to `address(0)`, implement a `renounceOwnership` function.
@@ -232,35 +254,64 @@ Trail of Bits identified four distinct cases in which an incorrect owner is set:
 **Severity**: <span style="color:black; background-color:yellow">Medium</span>
 
 
-### 50. Uniswap V3
+### 50. TOB-UNI-005
 
 **Finding**: Incorrect comparison enables swapping and token draining at no cost
 
-**Description**: An incorrect comparison in the swap function allows the swap to succeed even if no tokens are paid. This issue could be used to drain any pool of all of its tokens at no cost. The swap function calculates how many tokens the initiator (`msg.sender`) needs to pay (`amountIn`) to receive the requested amount of tokens (`amountOut`). It then calls the `uniswapV3SwapCallback` function on the initiator’s account, passing in the amount of tokens to be paid. The callback function should then transfer at least the requested amount of tokens to the pool contract. Afterward, a `require` inside the swap function verifies that the correct amount of tokens (`amountIn`) has been transferred to the pool. However, the check inside the `require` is incorrect. The operand used is `>=` instead of `<=`.
+**Description**:
+
+An incorrect comparison in the `swap` function allows the swap to succeed even if no tokens are paid. This issue could be used to drain any pool of all of its tokens at no cost.
+
+```soldity
+// INSECURE CODE from UniswapV3Pool.swap
+require(balanceBefore.add(uint256(amountIn)) >= balanceOfToken(tokenIn), 'IIA');
+```
+
+The swap function calculates how many tokens the initiator (`msg.sender`) needs to pay (`amountIn`) to receive the requested amount of tokens (`amountOut`). It then calls the `uniswapV3SwapCallback` function on the initiator’s account, passing in the amount of tokens to be paid. The callback function should then transfer at least the requested amount of tokens to the pool contract. Afterward, a `require` inside the swap function verifies that the correct amount of tokens (`amountIn`) has been transferred to the pool. However, the check inside the `require` is incorrect. The operand used is `>=` instead of `<=`.
 
 **Recommendation**: Replace `>=` with `<=` in the `require` statement.
 
 **Severity**: <span style="color:black; background-color:orange">High</span>
 
 
-### 51. Uniswap V3
+### 51. TOB-UNI-006
 
 **Finding**: Unbound loop enables denial of service
 
 **Description**: The `swap` function relies on an unbounded loop. An attacker could disrupt `swap` operations by forcing the loop to go through too many operations, potentially trapping the `swap` due to a lack of gas.
+
+```solidity
+// INSECURE CODE from UniswapV3Pool.swap
+while (state.amountSpecifiedRemaining != 0 && state.sqrtPriceX96 != sqrtPriceLimitX96) {
+  // function iterates over ticks
+}
+```
 
 **Recommendation**: Bound the loops and document the bounds.
 
 **Severity**: <span style="color:black; background-color:yellow">Medium</span>
 
 
-### 52. Uniswap V3
+### 52. TOB-UNI-007
 
 **Finding**: Front-running pool’s initialization can lead to draining of liquidity provider’s initial deposits
 
-**Description**: A front-run on `UniswapV3Pool.initialize` allows an attacker to set an unfair price and to drain assets from the first deposits. There are no access controls on the initialize function, so anyone could call it on a deployed pool. Initializing a pool with an incorrect price allows an attacker to generate profits from the initial liquidity provider’s deposits.
+**Description**:
 
-**Recommendation**: Either:
+A front-run on `UniswapV3Pool.initialize` allows an attacker to set an unfair price and to drain assets from the first deposits.
+
+```solidity
+// INSECURE CODE from UniswapV3Pool.initialize
+function initialize(uint160 sqrtPriceX96) external override {
+  // NO ACCESS CONTROL
+}
+```
+
+There are no access controls on the `initialize` function, so anyone could call it on a deployed pool. Initializing a pool with an incorrect price allows an attacker to generate profits from the initial liquidity provider’s deposits.
+
+**Recommendation**:
+
+Either:
 1. move the price operations from `initialize` to the `constructor`
 2. add access controls to `initialize`
 3. ensure that the documentation clearly warns users about incorrect initialization
@@ -268,22 +319,46 @@ Trail of Bits identified four distinct cases in which an incorrect owner is set:
 **Severity**: <span style="color:black; background-color:yellow">Medium</span>
 
 
-### 53. Uniswap V3
+### 53. TOB-UNI-008
 
 **Finding**: Swapping on zero liquidity allows for control of the pool’s price
 
-**Description**: Swapping on a tick with zero liquidity enables a user to adjust the price of `1 wei` of tokens in any direction. As a result, an attacker could set an arbitrary price at the pool’s initialization or if the liquidity providers withdraw all of the liquidity for a short time.
+**Description**:
+
+Swapping on a tick with zero liquidity enables a user to adjust the price of `1 wei` of tokens in any direction. As a result, an attacker could set an arbitrary price at the pool’s initialization or if the liquidity providers withdraw all of the liquidity for a short time.
 
 **Recommendation**: No straightforward way to prevent the issue. Ensure pools don’t end up in unexpected states. Warn users of potential risks.
 
 **Severity**: <span style="color:black; background-color:yellow">Medium</span>
 
 
-### 54. Uniswap V3
+### 54. TOB-UNI-009
 
 **Finding**: Failed transfer may be overlooked due to lack of contract existence check
 
-**Description**: Because the pool fails to check that a contract exists, the pool may assume that failed transactions involving destructed tokens are successful. `TransferHelper.safeTransfer` performs a transfer with a low-level call without confirming the contract’s existence. As a result, if the tokens have not yet been deployed or have been destroyed, `safeTransfer` will return `true` even though no transfer was executed.
+**Description**:
+
+Because the pool fails to check that a contract exists, the pool may assume that failed transactions involving destructed tokens are successful.
+
+`TransferHelper.safeTransfer` performs a transfer with a low-level call without confirming the contract’s existence.
+
+```solidity
+// INSECURE CODE from TransferHelper.safeTransfer()
+(bool success, bytes memory data) =
+    token.call(
+      abi.encodeWithSelector(
+        IERC20Minimal.transfer.selector,
+        to,
+        value
+      )
+    );
+require(success && (data.length == 0 || abi.decode(data, (bool))), 'TF');
+
+```
+
+> "The low level call, delegatecall, and callcode will return sucess if the calling account is non-existent, as part of the design of the EVM. Existence must be checked prior to calling if desired" - Solidity Docs
+
+As a result, if the tokens have not yet been deployed or have been destroyed, `safeTransfer` will return `true` even though no transfer was executed.
 
 **Recommendation**:
 - Short term, check the contract’s existence prior to the low-level call in `TransferHelper.safeTransfer`.
