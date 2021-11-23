@@ -6,13 +6,14 @@ ___
 
 ### 1. Aave Protocol V2
 
+<span style="color:black; background-color:yellow">Medium</span>
+
 **Finding**: Unhandled return values of `transfer` and `transferFrom`
 
 **Description**: ERC20 implementations are not always consistent. Some implementations of `transfer` and `transferFrom` could return `false` on failure instead of reverting. It is safer to wrap such calls into `require` statements to catch these failures.
 
 **Recommendation**: Check the return value and revert on `0` or `false`, or use OpenZeppelin’s `SafeERC20` wrapper functions
 
-**Severity**: <span style="color:black; background-color:yellow">Medium</span>
 ___
 ## Defi Saver Audit
 
@@ -20,15 +21,18 @@ ___
 
 ### 2. Defi Saver
 
+<span style="color:black; background-color:red">Critical</span>
+
 **Finding**: Random task execution
 
 **Description**: In a scenario where a user takes a flash loan, `_parseFLAndExecute()` gives the flash loan wrapper contract (`FLAaveV2`, `FLDyDx`) the permission to execute functions on behalf of the user’s `DSProxy`. This execution permission is revoked only after the entire recipe execution is finished, which means that in case that any of the external calls along the recipe execution is malicious, it might call `executeAction()` back, i.e. Reentrancy Attack, and inject any task it wishes (e.g. take user’s funds out, drain approved tokens, etc)
 
 **Recommendation**: A reentrancy guard (mutex) should be used to prevent such attack
 
-**Severity**: <span style="color:black; background-color:red">Critical</span>
 
 ### 3. Defi Saver (2)
+
+<span style="color:black; background-color:orange">Major</span>
 
 **Finding**: Tokens with more than 18 decimal points will cause issues
 
@@ -36,18 +40,17 @@ ___
 
 **Recommendation**: Make sure the code won’t fail in case the token’s decimals is more than 18
 
-**Severity**: <span style="color:black; background-color:orange">Major</span>
 
 
 ### 4. Defi Saver (3)
+
+<span style="color:black; background-color:orange">Major</span>
 
 **Finding**: Error codes of Compound’s `Comptroller.enterMarket` and `Comptroller.exitMarket` are not checked
 
 **Description**: Compound’s `enterMarket` and `exitMarket` functions return an error code instead of reverting in case of failure. DeFi Saver smart contracts never check for the error codes returned from Compound smart contracts.
 
 **Recommendation**: Caller contract should `revert` for non-zero error code
-
-**Severity**: <span style="color:black; background-color:orange">Major</span>
 ___
 ## DAOfi Audit
 
@@ -55,15 +58,18 @@ ___
 
 ### 5. DAOfi
 
+<span style="color:black; background-color:yellow">Medium</span>
+
 **Finding**: Reversed order of parameters in allowance function call
 
 **Description**: the parameters that are used for the allowance function call are not in the same order that is used later in the call to `safeTransferFrom`.
 
 **Recommendation**: Reverse the order of parameters in allowance function call to fit the order that is in the `safeTransferFrom` function call.
 
-**Severity**: <span style="color:black; background-color:yellow">Medium</span>
 
 ### 6. DAOfi (2)
+
+<span style="color:black; background-color:red">Critical</span>
 
 **Finding**: Token approvals can be stolen in `DAOfiV1Router01.addLiquidity`
 
@@ -71,9 +77,10 @@ ___
 
 **Recommendation**: Transfer tokens from `msg.sender` instead of `lp.sender`
 
-**Severity**: <span style="color:black; background-color:red">Critical</span>
 
 ### 7. DAOfi (3)
+
+<span style="color:black; background-color:orange">Major</span>
 
 **Finding**: `swapExactTokensForETH` checks the wrong return value
 
@@ -81,9 +88,10 @@ ___
 
 **Recommendation**: Check the intended values
 
-**Severity**: <span style="color:black; background-color:orange">Major</span>
 
 ### 8. DAOfi (4)
+
+<span style="color:black; background-color:yellow">Medium</span>
 
 **Finding**: `DAOfiV1Pair.deposit` accepts deposits of zero, blocking the pool
 
@@ -91,7 +99,6 @@ ___
 
 **Recommendation**: Require a minimum deposit amount with non-zero checks
 
-**Severity**: <span style="color:black; background-color:yellow">Medium</span>
 ___
 ## Fei Protocol Audit
 
@@ -99,21 +106,21 @@ ___
 
 ### 9. Fei Protocol
 
+<span style="color:black; background-color:red">Critical</span>
+
 **Finding**: `GenesisGroup.commit` overwrites previously committed values
 
 **Description**: The `amount` stored in the recipient’s `committedFGEN` balance overwrites any previously committed value. Additionally, this also allows anyone to commit an amount of "0" to any account, deleting their commitment entirely.
 
 **Recommendation**: Ensure the committed amount is added to the existing commitment.
 
-**Severity**: <span style="color:black; background-color:red">Critical</span>
-
-**Bad Code**: `committedFGEN[to] = amount` should be `+=`:
 ```solidity
+// INSECURE CODE
 function commit(address from, address to, uint amount) external override onlyGenesisPeriod {
 	burnFrom(from, amount);
 
 	committedFGEN[to] = amount;
-	totalCommittedFGEN += amount;
+	totalCommittedFGEN += amount; // should be +=
 
 	emit Commit(from, to, amount);
 }
@@ -121,17 +128,16 @@ function commit(address from, address to, uint amount) external override onlyGen
 
 ### 10. Fei Protocol (2)
 
+<span style="color:black; background-color:red">Critical</span>
+
 **Finding**: Purchasing and committing still possible after launch
 
 **Description**: Even after `GenesisGroup.launch` has successfully been executed, it is still possible to invoke `GenesisGroup.purchase` and `GenesisGroup.commit`.
 
 **Recommendation**: Consider adding validation in `GenesisGroup.purchase` and `GenesisGroup.commit` to make sure that these functions cannot be called after the launch.
 
-**Severity**: <span style="color:black; background-color:red">Critical</span>
-
-**Fixed Code**: The `!core().hasGenesisGroupCompleted` condition was added to `onlyGenesisPeriod` modifier:
-
 ```
+// SECURE CODE, !core().hasGenesisGroupCompleted added to modifier
 modifier onlyGenesisPeriod() {
 		require(
       !isTimeEnded() && !core().hasGenesisGroupCompleted(),  
@@ -141,6 +147,8 @@ modifier onlyGenesisPeriod() {
 ```
 
 ### 11. Fei Protocol (3)
+
+<span style="color:black; background-color:orange">Major</span>
 
 **Finding**: `UniswapIncentive` overflow on pre-transfer hooks
 
@@ -152,11 +160,8 @@ Both `incentivizeBuy` and `incentivizeSell` calculate incentives using overflow-
 
 **Recommendation**: Ensure casts in `getBuyIncentive` and `getSellPenalty` do not overflow
 
-**Severity**: <span style="color:black; background-color:orange">Major</span>
-
-**Bad Code**: casting `int256(uint amount)` may overflow:
-
 ```solidity
+// INSECURE CODE
 function getBuyIncentive(uint amount) public view override returns(
     uint incentive,
     uint32 weight,
@@ -164,9 +169,12 @@ function getBuyIncentive(uint amount) public view override returns(
     Decimal.D256 memory finalDeviation
 ) {
     (initialDeviation, finalDeviation) = getPriceDeviations(-1 * int256(amount));
+    // int256(amount) may overflow
 ```
 
 ### 12. Fei Protocol (4)
+
+<span style="color:black; background-color:yellow">Medium</span>
 
 **Finding**: `BondingCurve` allows users to acquire FEI before launch
 
@@ -174,17 +182,16 @@ function getBuyIncentive(uint amount) public view override returns(
 
 **Recommendation**: Prevent `allocate` from being called before genesis launch
 
-**Severity**: <span style="color:black; background-color:yellow">Medium</span>
-
-**Fixed Code**: The `postGenesis` modifier was added to `allocate`:
-
 ```solidity
+// SECURE CODE, postGenesis modifier added
 function allocate() external override postGenesis {
     uint256 amount = getTotalPCVHeld();
     require(amount != 0, "BondingCurve: No PCV held");
 ```
 
 ### 13. Fei Protocol (5)
+
+<span style="color:black; background-color:yellow">Medium</span>
 
 **Finding**: `Timed.isTimeEnded` returns `true` if the timer has not been initialized
 
@@ -198,11 +205,8 @@ Before this second method is called, `isTimeEnded()` calculates remaining time u
 
 **Recommendation**: If `Timed` has not been initialized, `isTimeEnded()` should return `false`, or `revert`
 
-**Severity**: <span style="color:black; background-color:yellow">Medium</span>
-
-**Fixed Code**: a call to `_initTimed()` was added to the `constructor` of `BondingCurve`, turning `Timed` initialization to a one step process:
-
 ```solidity
+// SECURE CODE, added _initTimed() to constructor
 constructor(
     uint256 _scale,
     address _core,
@@ -220,11 +224,13 @@ constructor(
     _setScale(_scale);
     incentiveAmount = _incentive;
 
-    _initTimed();
+    _initTimed(); // this call was added to constructor, making initialization a one-step process
 }
 ```
 
 ### 14. Fei Protocol (6)
+
+<span style="color:black; background-color:yellow">Medium</span>
 
 **Finding**: Overflow and underflow protection
 
@@ -236,14 +242,14 @@ In this code, many arithmetical operations are used without the ‘safe’ versi
 
 **Recommendation**: In our opinion, it is still safer to have these operations in a safe mode. So we recommend using `SafeMath` or solidity `version ^0.8` compiler.
 
-**Severity**: <span style="color:black; background-color:yellow">Medium</span>
-
-**Bad Code**: this arithmetic has no overflow protection
-```
+```solidity
+// INSECURE CODE, no overflow protection
 uint totalGenesisTribe = tribeBalance() - totalCommittedTribe;
 ```
 
 ### 15. Fei Protocol (7)
+
+<span style="color:black; background-color:yellow">Medium</span>
 
 **Finding**: Unchecked return value for `IWETH.transfer` call
 
@@ -255,15 +261,15 @@ It is usually good to add a `require` statement that checks the return value or 
 
 **Recommendation**: Consider adding a `require` statement, or using `safeTransfer`
 
-**Severity**: <span style="color:black; background-color:yellow">Medium</span>
-
-**Bad Code**: this call should be wrapped by `require()` or use `safeTransfer()`:
 
 ```solidity
+// INSECURE CODE, should wrap with require or use safeTransfer
 weth.transfer(address(pair), amount);
 ```
 
 ### 16. Fei Protocol (8)
+
+<span style="color:black; background-color:yellow">Medium</span>
 
 **Finding**: `GenesisGroup.emergencyExit` remains functional after launch
 
@@ -272,8 +278,6 @@ weth.transfer(address(pair), amount);
 **Recommendation**:
 1. Ensure `launch` cannot be called if `emergencyExit` has been called
 2. Ensure `emergencyExit` cannot be called if `launch` has been called
-
-**Severity**: <span style="color:black; background-color:yellow">Medium</span>
 
 **Fixed Code**: the `require` statement `!core().hasGenesisGroupCompleted()` ensures that `emergencyExit` is only called before `launch`
 
@@ -303,13 +307,13 @@ ___
 
 ### 17. bitbank
 
+<span style="color:black; background-color:orange">Major</span>
+
 **Finding**: ERC20 tokens with no return value will fail to transfer
 
 **Description**: Although the ERC20 standard suggests that a `transfer` should return `true` on success, many tokens are non-compliant in this regard. In that case, the `transfer` call here will revert even if the transfer is successful, because solidity will check that the `RETURNDATASIZE` matches the ERC20 interface.
 
 **Recommendation**: Consider using OpenZeppelin’s `SafeERC20`
-
-**Severity**: <span style="color:black; background-color:orange">Major</span>
 ___
 ## MetaSwap Audit
 
@@ -317,15 +321,18 @@ ___
 
 ### 18. MetaSwap
 
+<span style="color:black; background-color:orange">Major</span>
+
 **Finding**: Reentrancy vulnerability in `MetaSwap.swap`
 
 **Description**: If an attacker is able to reenter `swap`, they can execute their own trade using the same tokens and get all the tokens for themselves.
 
 **Recommendation**: Use a simple reentrancy guard, such as OpenZeppelin’s `ReentrancyGuard` to prevent reentrancy in `MetaSwap.swap`
 
-**Severity**: <span style="color:black; background-color:orange">Major</span>
 
 ### 19. MetaSwap
+
+<span style="color:black; background-color:yellow">Medium</span>
 
 **Finding**: A new malicious adapter can access users’ tokens
 
@@ -333,9 +340,10 @@ ___
 
 **Recommendation**: Make `MetaSwap` contract the only contract that receives token approval. It then moves tokens to the `Spender` contract before that contract `DELEGATECALLs` to the appropriate adapter. In this model, newly added adapters shouldn’t be able to access users’ funds.
 
-**Severity**: <span style="color:black; background-color:yellow">Medium</span>
 
 ### 20. MetaSwap (2)
+
+<span style="color:black; background-color:yellow">Medium</span>
 
 **Finding**: Owner can front-run traders by updating adapters
 
@@ -343,7 +351,6 @@ ___
 
 **Recommendation**: At a minimum, disallow modification of existing adapters. Instead, simply add new adapters and disable the old ones.
 
-**Severity**: <span style="color:black; background-color:yellow">Medium</span>
 ___
 ## mstable-1.1 Audit
 
@@ -351,19 +358,22 @@ ___
 
 ### 21. mstable-1.1
 
+<span style="color:black; background-color:yellow">Medium</span>
+
 **Finding**: Users can collect interest from `SavingsContract` by only staking `mTokens` momentarily
 
 **Description**: The `SAVE` contract allows users to deposit `mAssets` in return for lending yield and swap fees. When depositing `mAsset`, users receive a “credit” tokens at the momentary credit/mAsset exchange rate which is updated at every deposit. However, the smart contract enforces a minimum timeframe of 30 minutes in which the interest rate will not be updated. A user who deposits shortly before the end of the timeframe will receive credits at the stale interest rate and can immediately trigger an update of the rate and withdraw at the updated (more favorable) rate after the 30 minutes window. As a result, it would be possible for users to benefit from interest payouts by only staking `mAssets` momentarily and using them for other purposes the rest of the time.
 
 **Recommendation**: Remove the 30 minutes window such that every deposit also updates the exchange rate between credits and tokens.
 
-**Severity**: <span style="color:black; background-color:yellow">Medium</span>
 ___
 ## Bancor v2 AMM Audit
 
 [Report](https://consensys.net/diligence/audits/2020/06/bancor-v2-amm-security-audit)
 
 ### 22. Bancor v2 AMM
+
+<span style="color:black; background-color:red">Critical</span>
 
 **Finding**: Oracle updates can be manipulated to perform atomic front-running attack
 
@@ -373,13 +383,14 @@ ___
 
 **Recommendation**: Do not allow users to trade at a stale `Oracle` rate and trigger an `Oracle` price update in the same transaction.
 
-**Severity**: <span style="color:black; background-color:red">Critical</span>
 ___
 ## Shell Protocol Audit
 
 [Report](https://consensys.net/diligence/audits/2020/06/shell-protocol)
 
 ### 23. Shell Protocol
+
+<span style="color:black; background-color:orange">Major</span>
 
 **Finding**: Certain functions lack input validation routines
 
@@ -392,9 +403,9 @@ ___
 
 **Recommendation**: Add tests that check if all of the arguments have been validated. Consider checking arguments as an important part of writing code and developing the system.
 
-**Severity**: <span style="color:black; background-color:orange">Major</span>
-
 ### 24. Shell Protocol (2)
+
+<span style="color:black; background-color:orange">Major</span>
 
 **Finding**: Remove `Loihi` methods that can be used as backdoors by the administrator
 
@@ -404,13 +415,14 @@ ___
 1. Remove the `safeApprove` function and, instead, use a trustless escape hatch mechanism.
 2. For the assimilator addition functions, our recommendation is that they are made completely internal, only callable in the `constructor`, at deploy time. Even though this is not a big structural change (in fact, it reduces the attack surface), it is, indeed, a feature loss. However, this is the only way to make each shell a time-invariant system. This would not only increase Shell’s security but also would greatly improve the trust the users have in the protocol since, after deployment, the code is now static and auditable.
 
-**Severity**: <span style="color:black; background-color:orange">Major</span>
 ___
 ## Lien Protocol Audit
 
 [Report](https://consensys.net/diligence/audits/2020/05/lien-protocol)
 
 ### 25. Lien Protocol
+
+<span style="color:black; background-color:red">Critical</span>
 
 **Finding**: A reverting `fallback` function will lock up all payouts
 
@@ -420,7 +432,6 @@ ___
 1. Implement a queuing mechanism to allow buyers and sellers to initiate the withdrawal on their own using a *pull-over-push* pattern.
 2. Ignore a failed transfer and leave the responsibility up to users to receive them properly.
 
-**Severity**: <span style="color:black; background-color:red">Critical</span>
 ___
 ## The Lao Audit
 
@@ -428,15 +439,18 @@ ___
 
 ### 26. The Lao
 
+<span style="color:black; background-color:red">Critical</span>
+
 **Finding**: `Saferagequit` makes you lose funds
 
 **Description**: `safeRagequit` and `ragequit` functions are used for withdrawing funds from the LAO. The difference between them is that `ragequit` function tries to withdraw all the allowed tokens and `safeRagequit` function withdraws only some subset of these tokens, defined by the user. It’s needed in case the user or `GuildBank` is blacklisted in some of the tokens and the transfer reverts. The problem is that even though you can quit in that case, you’ll lose the tokens that you exclude from the list. To be precise, the tokens are not completely lost, they will belong to the LAO and can still potentially be transferred to the user who quit. But that requires a lot of trust, coordination, and time, and anyone can steal some part of these tokens.
 
 **Recommendation**: Implementing *pull pattern* for token withdrawals should solve the issue. Users will be able to quit the LAO and burn their shares but still keep their tokens in the LAO’s contract for some time if they can’t withdraw them right now.
 
-**Severity**: <span style="color:black; background-color:red">Critical</span>
 
 ### 27. The Lao (2)
+
+<span style="color:black; background-color:red">Critical</span>
 
 **Finding**: Creating proposal is not trustless
 
@@ -444,10 +458,11 @@ ___
 
 **Recommendation**: *Pull pattern* for token transfers would solve the issue
 
-**Severity**: <span style="color:black; background-color:red">Critical</span>
 
 
 ### 28. The Lao (3)
+
+<span style="color:black; background-color:red">Critical</span>
 
 **Finding**: Emergency processing can be blocked
 
@@ -455,7 +470,6 @@ ___
 
 **Recommendation**: *Pull pattern* for token transfers would solve the issue
 
-**Severity**: <span style="color:black; background-color:red">Critical</span>
 
 
 ### 29. The Lao (4)
@@ -466,9 +480,11 @@ ___
 
 **Recommendation**: We recommend to allow overflow for broken or malicious tokens. This is to prevent system halt or loss of funds. It should be noted that in case an overflow occurs, the balance of the token will be incorrect for all token holders in the system
 
-**Severity**: <span style="color:black; background-color:orange">Major</span>
+<span style="color:black; background-color:orange">Major</span>
 
 ### 30. The Lao (5)
+
+<span style="color:black; background-color:orange">Major</span>
 
 **Finding**: Whitelisted tokens limit
 
@@ -476,9 +492,10 @@ ___
 
 **Recommendation**: A simple solution would be just limiting the number of whitelisted tokens. If the intention is to invest in many new tokens over time, and it’s not an option to limit the number of whitelisted tokens, it’s possible to add a function that removes tokens from the whitelist. For example, it’s possible to add a new type of proposal that is used to vote on token removal if the balance of this token is zero. Before voting for that, shareholders should sell all the balance of that token.
 
-**Severity**: <span style="color:black; background-color:orange">Major</span>
 
 ### 31. The Lao (6)
+
+<span style="color:black; background-color:orange">Major</span>
 
 **Finding**: Summoner can steal funds using `bailout`
 
@@ -486,9 +503,10 @@ ___
 
 **Recommendation**: By implementing *pull pattern* for token transfers, kicked member won’t be able to block the `ragekick` and the LAO members would be able to kick anyone much quicker. There is no need to keep the `bailout` function.
 
-**Severity**: <span style="color:black; background-color:orange">Major</span>
 
 ### 32. The Lao (7)
+
+<span style="color:black; background-color:orange">Major</span>
 
 **Finding**: Sponsorship front-running
 
@@ -496,14 +514,13 @@ ___
 
 **Recommendation**: *Pull pattern* for token transfers will solve the issue. Front-running will still be possible but it doesn’t affect anything.
 
-**Severity**: <span style="color:black; background-color:orange">Major</span>
 
 ### 33. The Lao (8)
+
+<span style="color:black; background-color:yellow">Medium</span>
 
 **Finding**: Delegate assignment front-running
 
 **Description**: Any member can front-run another member’s `delegateKey` assignment. If you try to submit an address as your `delegateKey`, someone else can try to assign your delegate address to themselves. While incentive of this action is unclear, it’s possible to block some address from being a delegate forever.
 
 **Recommendation**: Make it possible for a `delegateKey` to approve `delegateKey` assignment or cancel the current delegation. Commit-reveal methods can also be used to mitigate this attack.
-
-**Severity**: <span style="color:black; background-color:yellow">Medium</span>

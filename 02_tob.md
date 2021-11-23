@@ -6,6 +6,8 @@ ___
 
 ### 34. Origin Dollar
 
+<span style="color:black; background-color:orange">High</span>
+
 **Finding**: Queued transactions cannot be canceled
 
 **Description**: The `Governor` contract contains special functions to set it as the admin of the `Timelock`. Only the admin can call `Timelock.cancelTransaction`. There are no functions in `Governor` that call `Timelock.cancelTransaction`. This makes it impossible for `Timelock.cancelTransaction` to ever be called.
@@ -14,10 +16,11 @@ ___
 - Short term, add a function to the `Governor` that calls `Timelock.cancelTransaction`. It is unclear who should be able to call it, and what other restrictions there should be around cancelling a transaction.
 - Long term, consider letting `Governor` inherit from `Timelock`. This would allow a lot of functions and code to be removed and significantly lower the complexity of these two contracts.
 
-**Severity**: <span style="color:black; background-color:orange">High</span>
 
 
 ### 35. Origin Dollar
+
+<span style="color:black; background-color:orange">High</span>
 
 **Finding**: Proposal transactions can be executed separately and block `Proposal.execute` call
 
@@ -25,10 +28,11 @@ ___
 
 **Recommendation**: Short term, only allow the admin to call `Timelock.executeTransaction`
 
-**Severity**: <span style="color:black; background-color:orange">High</span>
 
 
 ### 36. Origin Dollar
+
+<span style="color:black; background-color:orange">High</span>
 
 **Finding**: Proposals could allow `Timelock.admin` takeover
 
@@ -36,10 +40,11 @@ ___
 
 **Recommendation**: Short term, add a check that prevents `setPendingAdmin` to be included in a `Proposal`
 
-**Severity**: <span style="color:black; background-color:orange">High</span>
 
 
 ### 37. Origin Dollar
+
+<span style="color:black; background-color:orange">High</span>
 
 **Finding**: Reentrancy and untrusted contract call in `mintMultiple`
 
@@ -49,10 +54,11 @@ ___
 - Short term, add checks that cause `mintMultiple` to revert if the amount is zero or the asset is not supported. Add a reentrancy guard to the `mint`, `mintMultiple`, `redeem`, and `redeemAll` functions.
 - Long term, make use of Slither which will flag the reentrancy. Or even better, use Crytic and incorporate static analysis checks into your CI/CD pipeline. Add reentrancy guards to all non-view functions callable by anyone. Make sure to always revert a transaction if an input is incorrect. Disallow calling untrusted contracts.
 
-**Severity**: <span style="color:black; background-color:orange">High</span>
 
 
 ### 38. Origin Dollar
+
+<span style="color:black; background-color:orange">High</span>
 
 **Finding**: Lack of return value checks can lead to unexpected results
 
@@ -62,10 +68,11 @@ ___
 - Short term, check the return value of all calls mentioned above.
 - Long term, subscribe to Crytic.io to catch missing return checks. Crytic identifies this bug type automatically.
 
-**Severity**: <span style="color:black; background-color:orange">High</span>
 
 
 ### 39. Origin Dollar
+
+<span style="color:black; background-color:orange">High</span>
 
 **Finding**: External calls in loop can lead to denial of service
 
@@ -77,10 +84,11 @@ ___
     2. remove elements.
 - Long term, subscribe to Crytic.io to review external calls in loops. Crytic catches bugs of this type.
 
-**Severity**: <span style="color:black; background-color:orange">High</span>
 
 
 ### 40. Origin Dollar
+
+<span style="color:black; background-color:orange">High</span>
 
 **Finding**: OUSD allows users to transfer more tokens than expected
 
@@ -90,10 +98,11 @@ ___
 - Short term, make sure the balance is correctly checked before performing all the arithmetic operations. This will make sure it does not allow to transfer more than expected.
 - Long term, use Echidna to write properties that ensure ERC20 transfers are transferring the expected amount.
 
-**Severity**: <span style="color:black; background-color:orange">High</span>
 
 
 ### 41. Origin Dollar
+
+<span style="color:black; background-color:orange">High</span>
 
 **Finding**: OUSD total supply can be arbitrary, even smaller than user balances
 
@@ -103,7 +112,6 @@ ___
 - Short term, we would advise making clear all common invariant violations for users and other stakeholders.
 - Long term, we would recommend designing the system in such a way to preserve as many commonplace invariants as possible.
 
-**Severity**: <span style="color:black; background-color:orange">High</span>
 
 ___
 ## Yield Protocol
@@ -111,6 +119,8 @@ ___
 [Report](https://github.com/trailofbits/publications/blob/master/reviews/YieldProtocol.pdf)
 
 ### 42. Yield Protocol
+
+<span style="color:black; background-color:yellow">Medium</span>
 
 **Finding**: Flash minting can be used to redeem fyDAI
 
@@ -120,10 +130,11 @@ ___
 - Short term, disallow calls to redeem in the YDai and Unwind contracts during flash minting.
 - Long term, do not include operations that allow any user to manipulate an arbitrary amount of funds, even if it is in a single transaction. This will prevent attackers from gaining leverage to manipulate the market and break internal invariants.
 
-**Severity**: <span style="color:black; background-color:yellow">Medium</span>
 
 
 ### 43. Yield Protocol
+
+<span style="color:black; background-color:orange">High</span>
 
 **Finding**: Lack of `chainID` validation allows signatures to be re-used across forks
 
@@ -133,7 +144,6 @@ ___
 - Short term, include the `chainID` opcode in the `permit` schema. This will make replay attacks impossible in the event of a post-deployment hard fork.
 - Long term, document and carefully review any signature schemas, including their robustness to replay on different wallets, contracts, and blockchains. Make sure users are aware of signing best practices and the danger of signing messages from untrusted sources.
 
-**Severity**: <span style="color:black; background-color:orange">High</span>
 
 ___
 ## Hermez Audit
@@ -141,6 +151,8 @@ ___
 [Report](https://github.com/trailofbits/publications/blob/master/reviews/hermez.pdf)
 
 ### 44. Hermez
+
+<span style="color:black; background-color:orange">High</span>
 
 **Finding**: Lack of a contract existence check allows token theft
 
@@ -152,10 +164,11 @@ ___
 
 > "The low-level call, delegatecall, and callcode will return success if the called account is non-existent, as part of the design of EVM. Existence must be checked prior to calling if desired." - Solidity Docs
 
-**Severity**: <span style="color:black; background-color:orange">High</span>
 
 
 ### 45. Hermez
+
+<span style="color:black; background-color:yellow">Medium</span>
 
 **Finding**: No incentive for bidders to vote earlier
 
@@ -165,10 +178,11 @@ ___
 - Short term, explore ways to incentivize users to vote earlier. Consider a weighted bid, with a weight decreasing over time. While it won’t prevent users with unlimited resources from manipulating the vote at the last minute, it will make the attack more expensive and reduce the chance of vote manipulation.
 - Long term, stay up to date with the latest research on blockchain-based online voting and bidding. Blockchain-based online voting is a known challenge. No perfect solution has been found yet.
 
-**Severity**: <span style="color:black; background-color:yellow">Medium</span>
 
 
 ### 46. Hermez
+
+<span style="color:black; background-color:orange">High</span>
 
 **Finding**: Lack of access control separation is risky
 
@@ -178,7 +192,6 @@ ___
 - Short term, use a separate account to handle updating the tokens/USD ratio. Using the same account for the critical operations and update the tokens/USD ratio increases underlying risks.
 - Long term, document the access controls and set up a proper authorization architecture. Consider the risks associated with each access point and their frequency of usage to evaluate the proper design.
 
-**Severity**: <span style="color:black; background-color:orange">High</span>
 
 
 ### 47. Hermez
@@ -191,10 +204,12 @@ ___
 - Short term, use a *two-step procedure* for all non-recoverable critical operations to prevent irrecoverable mistakes.
 - Long term, identify and document all possible actions and their associated risks for privileged accounts. Identifying the risks will assist codebase review and prevent future mistakes.
 
-**Severity**: <span style="color:black; background-color:orange">High</span>
+<span style="color:black; background-color:orange">High</span>
 
 
 ### 48. Hermez
+
+<span style="color:black; background-color:orange">High</span>
 
 **Finding**: Initialization functions can be front-run
 
@@ -205,7 +220,6 @@ ___
 2. Ensure the deployment scripts are robust in case of a front-running attack.
 Carefully review the Solidity documentation, especially the Warnings section. Carefully review the pitfalls of using delegatecall proxy pattern.
 
-**Severity**: <span style="color:black; background-color:orange">High</span>
 
 ___
 ## Uniswap V3 Audit
@@ -213,6 +227,8 @@ ___
 [Report](https://github.com/Uniswap/uniswap-v3-core/blob/main/audits/tob/audit.pdf)
 
 ### 49. TOB-UNI-001
+
+<span style="color:black; background-color:yellow">Medium</span>
 
 **Finding**: Missing validation of `_owner` argument could indefinitely lock `owner` role
 
@@ -251,10 +267,11 @@ Several improvements could prevent the four above mentioned cases:
 2. Implement a *two-step ownership change process* through which the new `owner` needs to accept ownership.
 3. If it needs to be possible to set the `owner` to `address(0)`, implement a `renounceOwnership` function.
 
-**Severity**: <span style="color:black; background-color:yellow">Medium</span>
 
 
 ### 50. TOB-UNI-005
+
+<span style="color:black; background-color:orange">High</span>
 
 **Finding**: Incorrect comparison enables swapping and token draining at no cost
 
@@ -271,10 +288,11 @@ The swap function calculates how many tokens the initiator (`msg.sender`) needs 
 
 **Recommendation**: Replace `>=` with `<=` in the `require` statement.
 
-**Severity**: <span style="color:black; background-color:orange">High</span>
 
 
 ### 51. TOB-UNI-006
+
+<span style="color:black; background-color:yellow">Medium</span>
 
 **Finding**: Unbound loop enables denial of service
 
@@ -289,10 +307,11 @@ while (state.amountSpecifiedRemaining != 0 && state.sqrtPriceX96 != sqrtPriceLim
 
 **Recommendation**: Bound the loops and document the bounds.
 
-**Severity**: <span style="color:black; background-color:yellow">Medium</span>
 
 
 ### 52. TOB-UNI-007
+
+<span style="color:black; background-color:yellow">Medium</span>
 
 **Finding**: Front-running pool’s initialization can lead to draining of liquidity provider’s initial deposits
 
@@ -316,10 +335,11 @@ Either:
 2. add access controls to `initialize`
 3. ensure that the documentation clearly warns users about incorrect initialization
 
-**Severity**: <span style="color:black; background-color:yellow">Medium</span>
 
 
 ### 53. TOB-UNI-008
+
+<span style="color:black; background-color:yellow">Medium</span>
 
 **Finding**: Swapping on zero liquidity allows for control of the pool’s price
 
@@ -329,10 +349,11 @@ Swapping on a tick with zero liquidity enables a user to adjust the price of `1 
 
 **Recommendation**: No straightforward way to prevent the issue. Ensure pools don’t end up in unexpected states. Warn users of potential risks.
 
-**Severity**: <span style="color:black; background-color:yellow">Medium</span>
 
 
 ### 54. TOB-UNI-009
+
+<span style="color:black; background-color:orange">High</span>
 
 **Finding**: Failed transfer may be overlooked due to lack of contract existence check
 
@@ -364,7 +385,6 @@ As a result, if the tokens have not yet been deployed or have been destroyed, `s
 - Short term, check the contract’s existence prior to the low-level call in `TransferHelper.safeTransfer`.
 - Long term, avoid low-level calls.
 
-**Severity**: <span style="color:black; background-color:orange">High</span>
 
 ___
 ## DFX Finance Audit
@@ -372,6 +392,8 @@ ___
 [Report](https://github.com/dfx-finance/protocol/blob/main/audits/2021-05-03-Trail_of_Bits.pdf)
 
 ### 55. DFX Finance
+
+<span style="color:black; background-color:orange">High</span>
 
 **Finding**: Use of undefined behavior in equality check
 
@@ -385,10 +407,11 @@ which means that this check constitutes an instance of undefined behavior. As su
 - Short term, rewrite the `if` statement such that it does not use and assign the same variable in an equality check.
 - Long term, ensure that the codebase does not contain undefined Solidity or EVM behavior.
 
-**Severity**: <span style="color:black; background-color:orange">High</span>
 
 
 ### 56. DFX Finance
+
+<span style="color:black; background-color:orange">High</span>
 
 **Finding**: Assimilators’ balance functions return raw values
 
@@ -398,10 +421,11 @@ which means that this check constitutes an instance of undefined behavior. As su
 - Short term, change the semantics of the three functions listed above in the CADC, XSGD, and EURS assimilators to return the numeraire balance.
 - Long term, use unit tests and fuzzing to ensure that all calculations return the expected values. Additionally, ensure that changes to the Shell Protocol do not introduce bugs such as this one.
 
-**Severity**: <span style="color:black; background-color:orange">High</span>
 
 
 ### 57. DFX Finance
+
+<span style="color:black; background-color:yellow">Medium</span>
 
 **Finding**: System always assumes USDC is equivalent to USD
 
@@ -411,10 +435,11 @@ which means that this check constitutes an instance of undefined behavior. As su
 - Short term, replace the hard-coded integer literal in the `UsdcToUsdAssimilator`’s `getRate` method with a call to the relevant Chainlink oracle, as is done in other assimilator contracts.  
 - Long term, ensure that the system is robust against a decrease in the price of any stablecoin.
 
-**Severity**: <span style="color:black; background-color:yellow">Medium</span>
 
 
 ### 58. DFX Finance
+
+Undetermined
 
 **Finding**: Assimilators use a deprecated Chainlink API
 
@@ -422,7 +447,6 @@ which means that this check constitutes an instance of undefined behavior. As su
 
 **Recommendation**: Use the latest stable versions of any external libraries or contracts leveraged by the codebase
 
-**Severity**: Undetermined
 ___
 ## 0x Protocol Audit
 
@@ -430,16 +454,19 @@ ___
 
 ### 59. 0x Protocol
 
+<span style="color:black; background-color:orange">High</span>
+
 **Finding**: `cancelOrdersUpTo` can be used to permanently block future orders
 
 **Description**: Users can cancel an arbitrary number of future orders, and this operation is not reversible. The `cancelOrdersUpTo` function (Figure 3.1) can cancel an arbitrary number of orders in a single, fixed-size transaction. This function uses a parameter to discard any order with `salt` less than the input value. However, `cancelOrdersUpTo` can cancel future orders if it is called with a very large value (e.g., `MAX_UINT256 - 1`). This operation will cancel future orders, except for the one with `salt` equal to `MAX_UINT256`.
 
 **Recommendation**: Properly document this behavior to warn users about the permanent effects of `cancelOrderUpTo` on future orders. Alternatively, disallow the cancelation of future orders.
 
-**Severity**: <span style="color:black; background-color:orange">High</span>
 
 
 ### 60. 0x Protocol
+
+<span style="color:black; background-color:orange">High</span>
 
 **Finding**: Specification-Code mismatch for `AssetProxyOwner` timelock period:
 
@@ -453,10 +480,11 @@ The `MultiSigWalletWithTimeLock.sol` and `AssetProxyOwner.sol` contracts' timelo
 - Short term, implement the necessary range checks to enforce the timelock described in the specification. Otherwise correct the specification to match the intended behavior.
 - Long term, make sure implementation and specification are in sync. Use Echidna or Manticore to test that your code properly implements the specification.
 
-**Severity**: <span style="color:black; background-color:orange">High</span>
 
 
 ### 61. 0x Protocol
+
+<span style="color:black; background-color:orange">High</span>
 
 **Finding**: Unclear documentation on how order filling can fail
 
@@ -464,7 +492,6 @@ The `MultiSigWalletWithTimeLock.sol` and `AssetProxyOwner.sol` contracts' timelo
 
 **Recommendation**: Define a proper procedure to determine if an order is fillable and document it in the protocol specification. If necessary, warn the user about potential constraints on the orders.
 
-**Severity**: <span style="color:black; background-color:orange">High</span>
 
 
 ### 62. 0x Protocol
@@ -477,10 +504,12 @@ The `MultiSigWalletWithTimeLock.sol` and `AssetProxyOwner.sol` contracts' timelo
 - Short term, properly document this issue to make sure users are aware of this risk. Establish a reasonable cap for the `protocolFeeMultiplier` to mitigate this issue.
 - Long term, consider using an alternative fee that does not depend on the `tx.gasprice` to avoid reducing the cost of performing front-running attacks.
 
-**Severity**: <span style="color:black; background-color:yellow">Medium</span>
+<span style="color:black; background-color:yellow">Medium</span>
 
 
 ### 63. 0x Protocol
+
+<span style="color:black; background-color:yellow">Medium</span>
 
 **Finding**: `setSignatureValidatorApproval` race condition may be exploitable
 
@@ -490,10 +519,11 @@ The `MultiSigWalletWithTimeLock.sol` and `AssetProxyOwner.sol` contracts' timelo
 - Short term, document this behavior to make sure users are aware of the inherent risks of using validators in case of a compromise.
 - Long term, consider monitoring the blockchain using the `SignatureValidatorApproval` events to catch front-running attacks.
 
-**Severity**: <span style="color:black; background-color:yellow">Medium</span>
 
 
 ### 64. 0x Protocol
+
+<span style="color:black; background-color:yellow">Medium</span>
 
 **Finding**: Batch processing of transaction execution and order matching may lead to exchange griefing
 
@@ -503,10 +533,11 @@ The `MultiSigWalletWithTimeLock.sol` and `AssetProxyOwner.sol` contracts' timelo
 - Short term, implement `NoThrow` variants for batch processing of transaction execution and order matching.
 - Long term, take into consideration the effect of malicious inputs when implementing functions that perform a batch of operations.
 
-**Severity**: <span style="color:black; background-color:yellow">Medium</span>
 
 
 ### 65. 0x Protocol
+
+<span style="color:black; background-color:yellow">Medium</span>
 
 **Finding**: Zero fee orders are possible if a user performs transactions with a zero gas price
 
@@ -516,15 +547,14 @@ The `MultiSigWalletWithTimeLock.sol` and `AssetProxyOwner.sol` contracts' timelo
 - Short term, select a reasonable minimum value for the protocol fee for each order or transaction.
 - Long term, consider not depending on the gas price for the computation of protocol fees. This will avoid giving miners an economic advantage in the system.
 
-**Severity**: <span style="color:black; background-color:yellow">Medium</span>
 
 
 ### 66. 0x Protocol
+
+<span style="color:black; background-color:yellow">Medium</span>
 
 **Finding**: Calls to `setParams` may set invalid values and produce unexpected behavior in the staking contracts
 
 **Description**: Certain parameters of the contracts can be configured to invalid values, causing a variety of issues and breaking expected interactions between contracts. `setParams` allows the owner of the staking contracts to reparameterize critical parameters. However, reparameterization lacks sanity/threshold/limit checks on all parameters.
 
 **Recommendation**: Add proper validation checks on all parameters in `setParams`. If the validation procedure is unclear or too complex to implement on-chain, document the potential issues that could produce invalid values.
-
-**Severity**: <span style="color:black; background-color:yellow">Medium</span>
