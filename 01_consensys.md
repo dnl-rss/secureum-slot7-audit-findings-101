@@ -101,11 +101,23 @@ ___
 
 **Finding**: `GenesisGroup.commit` overwrites previously committed values
 
-**Description**: The amount stored in the recipient’s `committedFGEN` balance overwrites any previously committed value. Additionally, this also allows anyone to commit an amount of `0` to any account, deleting their commitment entirely.
+**Description**: The `amount` stored in the recipient’s `committedFGEN` balance overwrites any previously committed value. Additionally, this also allows anyone to commit an amount of "0" to any account, deleting their commitment entirely.
 
 **Recommendation**: Ensure the committed amount is added to the existing commitment.
 
 **Severity**: <span style="color:black; background-color:red">Critical</span>
+
+**Bad Code**: `committedFGEN[to] = amount` should be `+=`:
+```solidity
+function commit(address from, address to, uint amount) external override onlyGenesisPeriod {
+	burnFrom(from, amount);
+
+	committedFGEN[to] = amount;
+	totalCommittedFGEN += amount;
+
+	emit Commit(from, to, amount);
+}
+```
 
 ### 10. Fei Protocol (2)
 
@@ -117,57 +129,139 @@ ___
 
 **Severity**: <span style="color:black; background-color:red">Critical</span>
 
+**Fixed Code**: The `!core().hasGenesisGroupCompleted` condition was added to `onlyGenesisPeriod` modifier:
+
+```
+modifier onlyGenesisPeriod() {
+		require(
+      !isTimeEnded() && !core().hasGenesisGroupCompleted(),  
+      "GenesisGroup: Not in Genesis Period");
+		_;
+	}
+```
+
 ### 11. Fei Protocol (3)
 
 **Finding**: `UniswapIncentive` overflow on pre-transfer hooks
 
-**Description**: Before a token transfer is performed, Fei performs some combination of mint/burn operations via `UniswapIncentive.incentivize`. Both `incentivizeBuy` and `incentivizeSell` calculate incentives using overflow-prone math, then mint or burn from the target according to the results. This may have unintended consequences, like allowing a caller to mint tokens before transferring them, or burn tokens from their recipient.
+**Description**:
+
+Before a token transfer is performed, `Fei` performs some combination of mint/burn operations via `UniswapIncentive.incentivize`.
+
+Both `incentivizeBuy` and `incentivizeSell` calculate incentives using overflow-prone math, then mint or burn from the target according to the results. This may have unintended consequences, like allowing a caller to mint tokens before transferring them, or burn tokens from their recipient.
 
 **Recommendation**: Ensure casts in `getBuyIncentive` and `getSellPenalty` do not overflow
 
 **Severity**: <span style="color:black; background-color:orange">Major</span>
 
+**Bad Code**: casting `int256(uint amount)` may overflow:
+
+```solidity
+function getBuyIncentive(uint amount) public view override returns(
+    uint incentive,
+    uint32 weight,
+    Decimal.D256 memory initialDeviation,
+    Decimal.D256 memory finalDeviation
+) {
+    (initialDeviation, finalDeviation) = getPriceDeviations(-1 * int256(amount));
+```
+
 ### 12. Fei Protocol (4)
 
 **Finding**: `BondingCurve` allows users to acquire FEI before launch
 
-**Description**: `allocate` can be called before genesis launch, as long as the contract holds some nonzero PCV. By force-sending the contract 1 wei, anyone can bypass the majority of checks and actions in `allocate`, and mint themselves FEI each time the timer expires.
+**Description**: `BondingCurve.allocate` can be called before genesis launch, as long as the contract holds some nonzero PCV. By force-sending the contract 1 wei, anyone can bypass the majority of checks and actions in `allocate`, and mint themselves FEI each time the timer expires.
 
 **Recommendation**: Prevent `allocate` from being called before genesis launch
 
 **Severity**: <span style="color:black; background-color:yellow">Medium</span>
 
+**Fixed Code**: The `postGenesis` modifier was added to `allocate`:
+
+```solidity
+function allocate() external override postGenesis {
+    uint256 amount = getTotalPCVHeld();
+    require(amount != 0, "BondingCurve: No PCV held");
+```
+
 ### 13. Fei Protocol (5)
 
 **Finding**: `Timed.isTimeEnded` returns `true` if the timer has not been initialized
 
-**Description**: Timed initialization is a 2-step process:
+**Description**:
+
+`Timed` initialization is a 2-step process:
 1. `Timed.duration` is set in the `constructor`
-2. `Timed.startTime` is set when the method `_initTimed` is called. Before this second method is called, `isTimeEnded()` calculates remaining time using a `startTime` of `0`, resulting in the method returning `true` for most values, even though the timer has not technically been started.
+2. `Timed.startTime` is set when the method `_initTimed` is called.
+
+Before this second method is called, `isTimeEnded()` calculates remaining time using a `startTime` of "0", resulting in the method returning `true` for most values, even though the timer has not technically been started.
 
 **Recommendation**: If `Timed` has not been initialized, `isTimeEnded()` should return `false`, or `revert`
 
 **Severity**: <span style="color:black; background-color:yellow">Medium</span>
 
+**Fixed Code**: a call to `_initTimed()` was added to the `constructor` of `BondingCurve`, turning `Timed` initialization to a one step process:
+
+```solidity
+constructor(
+    uint256 _scale,
+    address _core,
+    address[] memory _pcvDeposits,
+    uint256[] memory _ratios,
+    address _oracle,
+    uint256 _duration,
+    uint256 _incentive
+)
+    public
+    OracleRef(_core, _oracle)
+    PCVSplitter(_pcvDeposits, _ratios)
+    Timed(_duration)
+{
+    _setScale(_scale);
+    incentiveAmount = _incentive;
+
+    _initTimed();
+}
+```
+
 ### 14. Fei Protocol (6)
 
 **Finding**: Overflow and underflow protection
 
-**Description**: Having overflow and underflow vulnerabilities is very common for smart contracts. It is usually mitigated by using `SafeMath` or using solidity `version ^0.8`. In this code, many arithmetical operations are used without the ‘safe’ version. The reasoning behind it is that all the values are derived from the actual ETH values, so they can’t overflow.
+**Description**:
+
+Having overflow and underflow vulnerabilities is very common for smart contracts. It is usually mitigated by using `SafeMath` or using solidity `version ^0.8`.
+
+In this code, many arithmetical operations are used without the ‘safe’ version. The reasoning behind it is that all the values are derived from the actual ETH values, so they can’t overflow.
 
 **Recommendation**: In our opinion, it is still safer to have these operations in a safe mode. So we recommend using `SafeMath` or solidity `version ^0.8` compiler.
 
 **Severity**: <span style="color:black; background-color:yellow">Medium</span>
 
+**Bad Code**: this arithmetic has no overflow protection
+```
+uint totalGenesisTribe = tribeBalance() - totalCommittedTribe;
+```
+
 ### 15. Fei Protocol (7)
 
 **Finding**: Unchecked return value for `IWETH.transfer` call
 
-**Description**: In `EthUniswapPCVController`, there is a call to `IWETH.transfer` that does not check the return value. It is usually good to add a `require` statement that checks the return value or to use something like `safeTransfer`, unless one is sure the given token reverts in case of a failure.
+**Description**:
+
+In `EthUniswapPCVController`, there is a call to `IWETH.transfer` that does not check the return value.
+
+It is usually good to add a `require` statement that checks the return value or to use something like `safeTransfer`, unless one is sure the given token reverts in case of a failure.
 
 **Recommendation**: Consider adding a `require` statement, or using `safeTransfer`
 
 **Severity**: <span style="color:black; background-color:yellow">Medium</span>
+
+**Bad Code**: this call should be wrapped by `require()` or use `safeTransfer()`:
+
+```solidity
+weth.transfer(address(pair), amount);
+```
 
 ### 16. Fei Protocol (8)
 
@@ -180,6 +274,28 @@ ___
 2. Ensure `emergencyExit` cannot be called if `launch` has been called
 
 **Severity**: <span style="color:black; background-color:yellow">Medium</span>
+
+**Fixed Code**: the `require` statement `!core().hasGenesisGroupCompleted()` ensures that `emergencyExit` is only called before `launch`
+
+```solidity
+// Add a backdoor out of Genesis in case of brick
+function emergencyExit(address from, address payable to) external {
+  require(now > (startTime + duration + 3 days), "GenesisGroup: Not in exit window");
+  require(!core().hasGenesisGroupCompleted(), "GenesisGroup: Launch already happened");
+
+  uint amountFGEN = balanceOf(from);
+  uint total = amountFGEN + committedFGEN[from];
+
+  require(total != 0, "GenesisGroup: No FGEN or committed balance");
+  require(address(this).balance >= total, "GenesisGroup: Not enough ETH to redeem");
+  require(msg.sender == from || allowance(from, msg.sender) >= total, "GenesisGroup: Not approved for emergency withdrawal");
+
+  burnFrom(from, amountFGEN);
+  committedFGEN[from] = 0;
+
+  to.transfer(total);
+}
+```
 ___
 ## bitbank Audit
 
